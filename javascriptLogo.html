@@ -34,7 +34,7 @@
     ctx.translate(canvas.width / 2, canvas.height / 2);
 
     // Define uma função para mover a tartaruga para frente
-    function frente(distancia) {
+    function pf(distancia) {
       // Calcula as novas coordenadas da tartaruga
       var novoX = tartaruga.x + distancia * Math.cos(tartaruga.angulo * Math.PI / 180);
       var novoY = tartaruga.y + distancia * Math.sin(tartaruga.angulo * Math.PI / 180);
@@ -53,14 +53,21 @@
       tartaruga.y = novoY;
     }
 
+    // Define uma função para mover a tartaruga para tras
+    function pt(distancia) {
+        pd(180);
+        pf(distancia);
+        pd(180);
+    }
+
     // Define uma função para girar a tartaruga para a direita
-    function direita(graus) {
+    function pd(graus) {
       // Subtrai os graus do ângulo da tartaruga
       tartaruga.angulo -= graus;
     }
 
     // Define uma função para girar a tartaruga para a esquerda
-    function esquerda(graus) {
+    function pe(graus) {
       // Adiciona os graus ao ângulo da tartaruga
       tartaruga.angulo += graus;
     }
@@ -72,13 +79,13 @@
     }
 
     // Define uma função para levantar a caneta
-    function levanta() {
+    function un() {
       // Atribui false à propriedade baixo da tartaruga
       tartaruga.baixo = false;
     }
 
     // Define uma função para abaixar a caneta
-    function abaixa() {
+    function ul() {
       // Atribui true à propriedade baixo da tartaruga
       tartaruga.baixo = true;
     }
@@ -111,10 +118,10 @@
       // Repete quatro vezes
       for (var i = 0; i < 4; i++) {
         // Move a tartaruga para frente com o lado dado
-        frente(lado);
+        pf(lado);
         
         // Gira a tartaruga para a direita em 90 graus
-        direita(90);
+        pd(90);
       }
     }
     
@@ -135,11 +142,19 @@
       // Repete o número de segmentos
       for (var i = 0; i < segmentos; i++) {
         // Move a tartaruga para frente com o tamanho do segmento
-        frente(tamanho);
+        pf(tamanho);
         
         // Gira a tartaruga para a esquerda com o ângulo do segmento
-        esquerda(angulo);
+        pe(angulo);
       }
+    }
+
+    function cruz(segmento) {
+        for (var i = 0; i < 4; i++) {
+            pf(segmento);
+            pt(segmento);
+            pd(90);
+        }       
     }
 
     // Cria um elemento input para receber os comandos
