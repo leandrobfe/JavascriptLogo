@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Superlogo Simulator</title>
+  <style>
+    #canvas {
+      border: 1px solid black;
+    }
+  </style>
+</head>
+<body>
+  <h1>Superlogo Simulator</h1>
+  <p>Enter a superlogo command and press enter to execute it.</p>
+  <input type="text" id="input" placeholder="Enter command here">
+  <canvas id="canvas" width="500" height="500"></canvas>
+  <script>
+    // Biblioteca javascript para simular a linguagem superlogo
+
+    // Cria um objeto tartaruga que representa a caneta
+    var tartaruga = {
+      x: 0, // posição x da tartaruga
+      y: 0, // posição y da tartaruga
+      angulo: 0, // ângulo da tartaruga em graus
+      cor: "black", // cor da caneta
+      baixo: true, // se a caneta está baixa ou não
+    };
+
+    // Cria um elemento canvas para desenhar
+    var canvas = document.getElementById("canvas");
+    var ctx = canvas.getContext("2d");
+
+    // Define o centro do canvas como a origem
+    ctx.translate(canvas.width / 2, canvas.height / 2);
+
+    // Define uma função para mover a tartaruga para frente
+    function frente(distancia) {
+      // Calcula as novas coordenadas da tartaruga
+      var novoX = tartaruga.x + distancia * Math.cos(tartaruga.angulo * Math.PI / 180);
+      var novoY = tartaruga.y + distancia * Math.sin(tartaruga.angulo * Math.PI / 180);
+
+      // Desenha uma linha se a caneta estiver baixa
+      if (tartaruga.baixo) {
+        ctx.beginPath();
+        ctx.moveTo(tartaruga.x, -tartaruga.y); // inverte o eixo y
+        ctx.lineTo(novoX, -novoY); // inverte o eixo y
+        ctx.strokeStyle = tartaruga.cor;
+        ctx.stroke();
+      }
+
+      // Atualiza as coordenadas da tartaruga
+      tartaruga.x = novoX;
+      tartaruga.y = novoY;
+    }
+
+    // Define uma função para girar a tartaruga para a direita
+    function direita(graus) {
+      // Subtrai os graus do ângulo da tartaruga
+      tartaruga.angulo -= graus;
+    }
+
+    // Define uma função para girar a tartaruga para a esquerda
+    function esquerda(graus) {
+      // Adiciona os graus ao ângulo da tartaruga
+      tartaruga.angulo += graus;
+    }
+
+    // Define uma função para mudar a cor da caneta
+    function cor(novaCor) {
+      // Atribui a nova cor à propriedade cor da tartaruga
+      tartaruga.cor = novaCor;
+    }
+
+    // Define uma função para levantar a caneta
+    function levanta() {
+      // Atribui false à propriedade baixo da tartaruga
+      tartaruga.baixo = false;
+    }
+
+    // Define uma função para abaixar a caneta
+    function abaixa() {
+      // Atribui true à propriedade baixo da tartaruga
+      tartaruga.baixo = true;
+    }
+
+    // Define uma função para limpar o canvas
+    function limpa() {
+      // Salva o estado atual do contexto
+      ctx.save();
+      
+      // Reseta as transformações do contexto
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      
+      // Limpa o canvas inteiro
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Restaura o estado anterior do contexto
+      ctx.restore();
+      
+      // Reseta as propriedades da tartaruga
+      tartaruga.x = 0;
+      tartaruga.y = 0;
+      tartaruga.angulo = 0;
+      tartaruga.cor = "black";
+      tartaruga.baixo = true;
+      
+    }
+
+    // Define uma função para desenhar um quadrado
+    function quadrado(lado) {
+      // Repete quatro vezes
+      for (var i = 0; i < 4; i++) {
+        // Move a tartaruga para frente com o lado dado
+        frente(lado);
+        
+        // Gira a tartaruga para a direita em 90 graus
+        direita(90);
+      }
+    }
+    
+    // Define uma função para desenhar um círculo
+    function circulo(raio) {
+      // Calcula o comprimento da circunferência
+      var comprimento = 2 * Math.PI * raio;
+      
+      // Calcula o número de segmentos para aproximar o círculo
+      var segmentos = Math.ceil(comprimento / 5);
+      
+      // Calcula o tamanho de cada segmento
+      var tamanho = comprimento / segmentos;
+      
+      // Calcula o ângulo de cada segmento
+      var angulo = 360 / segmentos;
+      
+      // Repete o número de segmentos
+      for (var i = 0; i < segmentos; i++) {
+        // Move a tartaruga para frente com o tamanho do segmento
+        frente(tamanho);
+        
+        // Gira a tartaruga para a esquerda com o ângulo do segmento
+        esquerda(angulo);
+      }
+    }
+
+    // Cria um elemento input para receber os comandos
+    var input = document.getElementById("input");
+
+    // Define uma função para executar os comandos
+    function executar(comando) {
+      // Divide o comando em palavras
+      var palavras = comando.split(" ");
+      
+      // Obtém a primeira palavra como o nome da função
+      var funcao = palavras[0];
+      
+      // Obtém as demais palavras como os argumentos da função
+      var argumentos = palavras.slice(1);
+      
+      // Converte os argumentos em números se possível
+      for (var i = 0; i < argumentos.length; i++) {
+        var numero = Number(argumentos[i]);
+        if (!isNaN(numero)) {
+          argumentos[i] = numero;
+        }
+      }
+      
+      // Verifica se a função existe na biblioteca
+      if (typeof window[funcao] === "function") {
+        // Chama a função com os argumentos dados
+        window[funcao].apply(null, argumentos);
+      } else {
+        // Exibe uma mensagem de erro no console
+        console.error("Função não encontrada: " + funcao);
+      }
+    }
+
+    // Adiciona um evento de tecla pressionada ao input
+    input.addEventListener("keydown", function(event) {
+      // Verifica se a tecla pressionada foi enter
+      if (event.keyCode === 13) {
+        // Obtém o valor do input como o comando
+        var comando = input.value;
+        
+        // Executa o comando
+        executar(comando);
+        
+        // Limpa o input
+        input.value = "";
+      }
+    });
+  </script>
+</body>
+</html>
