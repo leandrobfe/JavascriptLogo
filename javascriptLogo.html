@@ -4,8 +4,43 @@
   <meta charset="UTF-8">
   <title>Superlogo Simulator</title>
   <style>
+    /* Arquivo style.css */
+
+    /* Define o estilo do elemento body */
+    body {
+    font-family: Arial, sans-serif; /* Define a fonte do texto */
+    background-color: white; /* Define a cor de fundo */
+    margin: 0; /* Remove as margens */
+    }
+
+    /* Define o estilo do elemento h1 */
+    h1 {
+    color: white; /* Define a cor do texto */
+    text-align: center; /* Centraliza o texto */
+    padding: 20px; /* Define o espaçamento interno */
+    }
+
+    /* Define o estilo do elemento p */
+    p {
+    color: lightblue; /* Define a cor do texto */
+    text-align: center; /* Centraliza o texto */
+    }
+
+    /* Define o estilo do elemento input */
+    input {
+    display: block; /* Define o tipo de exibição como bloco */
+    width: 80%; /* Define a largura como 80% do elemento pai */
+    margin: 10px auto; /* Define as margens automáticas e superior e inferior de 10px */
+    padding: 10px; /* Define o espaçamento interno de 10px */
+    border: none; /* Remove a borda */
+    border-radius: 10px; /* Define o raio da borda como 10px */
+    background-color: lightblue; /* Define a cor de fundo */
+    }
+
     #canvas {
-      border: 1px solid black;
+        display: block; /* Define o tipo de exibição como bloco */
+        margin: auto; /* Centraliza o elemento */
+        border: 1px solid black;
     }
   </style>
 </head>
@@ -16,6 +51,10 @@
   <canvas id="canvas" width="500" height="500"></canvas>
   <script>
     // Biblioteca javascript para simular a linguagem superlogo
+
+    // Parametros
+    var TAMTAR = 10;
+    var CORFUNDO = "white";
 
     // Cria um objeto tartaruga que representa a caneta
     var tartaruga = {
@@ -155,6 +194,55 @@
             pt(segmento);
             pd(90);
         }       
+    }
+
+    function seta(tamanho){
+        pd(45);
+        pt(tamanho);
+        pf(tamanho);
+        pe(90);
+        pt(tamanho);
+        pf(tamanho);
+        pd(45);
+    }
+
+    function tar(){
+        var isBaixo = tartaruga.baixo;
+        ul();
+        seta(TAMTAR);
+        if(!isBaixo){
+            un();
+        }
+    }
+
+    function tar(){
+        var isBaixo = tartaruga.baixo;
+        un();
+        pd(45);
+        pt(1);
+        ul();
+        pt(TAMTAR);
+        pf(TAMTAR);
+        pf(1);
+        pe(90);
+        un();
+        pt(1);
+        ul();
+        pt(TAMTAR);
+        pf(TAMTAR);
+        un();
+        pf(1);
+        pd(45);
+        if(isBaixo){
+            ul();
+        }
+    }
+
+    function apagaTar(){
+        var corTar = tartaruga.cor;
+        tartaruga.cor = CORFUNDO;
+        tar();
+        tartaruga.cor = corTar;
     }
 
     // Cria um elemento input para receber os comandos
