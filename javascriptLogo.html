@@ -8,9 +8,32 @@
 
     /* Define o estilo do elemento body */
     body {
-    font-family: Arial, sans-serif; /* Define a fonte do texto */
-    background-color: white; /* Define a cor de fundo */
-    margin: 0; /* Remove as margens */
+      font-family: Arial, sans-serif; /* Define a fonte do texto */
+      background-color: white; /* Define a cor de fundo */
+      margin: 0; /* Remove as margens */
+      padding: 0;
+      /*
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh; /* Use full viewport height */
+      overflow: hidden; /* Hide overflow to avoid scrollbars if canvas is bigger than screen */
+    }
+
+    .content {
+      flex-grow: 1; /* Allow the container to fill the remaining space */
+      display: flex;
+      justify-content: center; /* Center horizontally */
+      align-items: center; /* Center vertically */
+      overflow: hidden;
+    }
+
+    h1 {
+      color: white; /* Define a cor do texto */
+      text-align: center; /* Centraliza o texto */
+      padding: 20px; /* Define o espaçamento interno */
+      background-color: #333; /* Add background color for visibility */
+      margin: 0; /* Remove margin to align it at the top */
     }
 
     /* Define o estilo do elemento h1 */
@@ -28,269 +51,431 @@
 
     /* Define o estilo do elemento input */
     input {
-    display: block; /* Define o tipo de exibição como bloco */
-    width: 80%; /* Define a largura como 80% do elemento pai */
-    margin: 10px auto; /* Define as margens automáticas e superior e inferior de 10px */
-    padding: 10px; /* Define o espaçamento interno de 10px */
-    border: none; /* Remove a borda */
-    border-radius: 10px; /* Define o raio da borda como 10px */
-    background-color: lightblue; /* Define a cor de fundo */
+      display: block; /* Define o tipo de exibição como bloco */
+      width: 80%; /* Define a largura como 80% do elemento pai */
+      margin: 10px auto; /* Define as margens automáticas e superior e inferior de 10px */
+      padding: 10px; /* Define o espaçamento interno de 10px */
+      border: none; /* Remove a borda */
+      border-radius: 10px; /* Define o raio da borda como 10px */
+      background-color: lightblue; /* Define a cor de fundo */
     }
 
-    #canvas {
-        display: block; /* Define o tipo de exibição como bloco */
-        margin: auto; /* Centraliza o elemento */
-        border: 1px solid black;
+    #canvasContainer {
+      position: relative;
     }
+    
+    canvas {
+      border: 1px solid black;
+      position: absolute; /* Position canvases absolutely to overlap */
+      top: 0;
+      left: 0;
+    }
+
   </style>
 </head>
 <body>
-  <h1>Superlogo Simulator</h1>
-  <p>Enter a superlogo command and press enter to execute it.</p>
-  <input type="text" id="input" placeholder="Enter command here">
-  <canvas id="canvas" width="500" height="500"></canvas>
+    <h1>Superlogo Simulator</h1>
+    <p>Enter a superlogo command and press enter to execute it.</p>
+    <input type="text" id="input" placeholder="Enter command here">
+
+  <div id="canvasContainer">
+    <canvas id="drawingCanvas" width="500" height="500"></canvas>
+    <canvas id="turtleCanvas" width="500" height="500"></canvas>
+  </div>
   <script>
-    // Biblioteca javascript para simular a linguagem superlogo
+      // JavaScript library to simulate the Superlogo language
 
-    // Parametros
-    var TAMTAR = 10;
-    var CORFUNDO = "white";
+      // Parameters
+      var TURTLE_SIZE = 10;
+      var BACKGROUND_COLOR = "white";
+      var ROBOTSIZE = 20;
 
-    // Cria um objeto tartaruga que representa a caneta
-    var tartaruga = {
-      x: 0, // posição x da tartaruga
-      y: 0, // posição y da tartaruga
-      angulo: 0, // ângulo da tartaruga em graus
-      cor: "black", // cor da caneta
-      baixo: true, // se a caneta está baixa ou não
-    };
+      // Creates a turtle object that represents the pen
+      var turtle = {
+        x: 0, // turtle's x position
+        y: 0, // turtle's y position
+        angle: 0, // turtle's angle in degrees
+        draw: true,
+        penColor: "black", // pen color
+        color: "green", // main color
+        shellColor: "brown", // leg color
+        down: true, // whether the pen is down or not
+      };
 
-    // Cria um elemento canvas para desenhar
-    var canvas = document.getElementById("canvas");
-    var ctx = canvas.getContext("2d");
+      // Creates a canvas element for drawing
+      var canvas = document.getElementById("drawingCanvas");
+      var ctx = canvas.getContext('2d');
+      var turtleCtx = document.getElementById('turtleCanvas').getContext('2d');
 
-    // Define o centro do canvas como a origem
-    ctx.translate(canvas.width / 2, canvas.height / 2);
-
-    // Define uma função para mover a tartaruga para frente
-    function pf(distancia) {
-      // Calcula as novas coordenadas da tartaruga
-      var novoX = tartaruga.x + distancia * Math.cos(tartaruga.angulo * Math.PI / 180);
-      var novoY = tartaruga.y + distancia * Math.sin(tartaruga.angulo * Math.PI / 180);
-
-      // Desenha uma linha se a caneta estiver baixa
-      if (tartaruga.baixo) {
-        ctx.beginPath();
-        ctx.moveTo(tartaruga.x, -tartaruga.y); // inverte o eixo y
-        ctx.lineTo(novoX, -novoY); // inverte o eixo y
-        ctx.strokeStyle = tartaruga.cor;
-        ctx.stroke();
+      // Sets the center of the canvas as the origin
+      ctx.translate(canvas.width / 2, canvas.height / 2);
+      if(turtle.draw){
+        drawTurtle();
       }
 
-      // Atualiza as coordenadas da tartaruga
-      tartaruga.x = novoX;
-      tartaruga.y = novoY;
-    }
+      //
+      function drawState(state) {
+        if(state == 't'){
+          turtle.draw = true;
+          drawTurtle();
+        }else{
+          turtle.draw = false;
+        }
+      }
 
-    // Define uma função para mover a tartaruga para tras
-    function pt(distancia) {
-        pd(180);
-        pf(distancia);
-        pd(180);
-    }
+      // Defines a function to move the turtle forward
+      function fd(distance) {
+        if(turtle.draw){
+          eraseTurtle();
+        }
+        // Calculates the new turtle coordinates
+        var newX = turtle.x + distance * Math.cos(turtle.angle * Math.PI / 180);
+        var newY = turtle.y + distance * Math.sin(turtle.angle * Math.PI / 180);
 
-    // Define uma função para girar a tartaruga para a direita
-    function pd(graus) {
-      // Subtrai os graus do ângulo da tartaruga
-      tartaruga.angulo -= graus;
-    }
+        // Draws a line if the pen is down
+        if (turtle.down) {
+          ctx.beginPath();
+          ctx.moveTo(turtle.x, -turtle.y); // inverts the y axis
+          ctx.lineTo(newX, -newY); // inverts the y axis
+          ctx.strokeStyle = turtle.penColor;
+          ctx.stroke();
+        }
 
-    // Define uma função para girar a tartaruga para a esquerda
-    function pe(graus) {
-      // Adiciona os graus ao ângulo da tartaruga
-      tartaruga.angulo += graus;
-    }
+        // Updates the turtle coordinates
+        turtle.x = newX;
+        turtle.y = newY;
+        if(turtle.draw){
+          drawTurtle();
+        }
+      }
 
-    // Define uma função para mudar a cor da caneta
-    function cor(novaCor) {
-      // Atribui a nova cor à propriedade cor da tartaruga
-      tartaruga.cor = novaCor;
-    }
+      // Defines a function to move the turtle backward
+      function bk(distance) {
+          rt(180);
+          fd(distance);
+          rt(180);
+      }
 
-    // Define uma função para levantar a caneta
-    function un() {
-      // Atribui false à propriedade baixo da tartaruga
-      tartaruga.baixo = false;
-    }
+      // Defines a function to turn the turtle to the right
+      function rt(angle) {
+        // Subtracts degrees from the turtle's angle
+        turtle.angle -= angle;
+      }
 
-    // Define uma função para abaixar a caneta
-    function ul() {
-      // Atribui true à propriedade baixo da tartaruga
-      tartaruga.baixo = true;
-    }
+      // Defines a function to turn the turtle to the left
+      function lt(angle) {
+        // Adds degrees to the turtle's angle
+        turtle.angle += angle;
+      }
 
-    // Define uma função para limpar o canvas
-    function limpa() {
-      // Salva o estado atual do contexto
-      ctx.save();
-      
-      // Reseta as transformações do contexto
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-      
-      // Limpa o canvas inteiro
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
-      // Restaura o estado anterior do contexto
-      ctx.restore();
-      
-      // Reseta as propriedades da tartaruga
-      tartaruga.x = 0;
-      tartaruga.y = 0;
-      tartaruga.angulo = 0;
-      tartaruga.cor = "black";
-      tartaruga.baixo = true;
-      
-    }
+      // Defines a function to change the pen color
+      function penColor(newColor) {
+        // Assigns the new color to the turtle's color property
+        turtle.penColor = newColor;
+      }
 
-    // Define uma função para desenhar um quadrado
-    function quadrado(lado) {
-      // Repete quatro vezes
-      for (var i = 0; i < 4; i++) {
-        // Move a tartaruga para frente com o lado dado
-        pf(lado);
+      // Defines a function to lift the pen
+      function pu() {
+        // Assigns false to the turtle's down property
+        turtle.down = false;
+      }
+
+      // Defines a function to put down the pen
+      function pd() {
+        // Assigns true to the turtle's down property
+        turtle.down = true;
+      }
+
+      // Defines a function to clear the canvas
+      function cs() {
+        // Saves the current context state
+        ctx.save();
         
-        // Gira a tartaruga para a direita em 90 graus
-        pd(90);
-      }
-    }
-    
-    // Define uma função para desenhar um círculo
-    function circulo(raio) {
-      // Calcula o comprimento da circunferência
-      var comprimento = 2 * Math.PI * raio;
-      
-      // Calcula o número de segmentos para aproximar o círculo
-      var segmentos = Math.ceil(comprimento / 5);
-      
-      // Calcula o tamanho de cada segmento
-      var tamanho = comprimento / segmentos;
-      
-      // Calcula o ângulo de cada segmento
-      var angulo = 360 / segmentos;
-      
-      // Repete o número de segmentos
-      for (var i = 0; i < segmentos; i++) {
-        // Move a tartaruga para frente com o tamanho do segmento
-        pf(tamanho);
+        // Resets the context transformations
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
         
-        // Gira a tartaruga para a esquerda com o ângulo do segmento
-        pe(angulo);
+        // Clears the entire canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Restores the previous context state
+        ctx.restore();
+        
+        // Resets the turtle properties
+        turtle.x = 0;
+        turtle.y = 0;
+        turtle.angle = 0;
+        turtle.penColor = "black";
+        turtle.down = true;
+        
       }
-    }
 
-    function cruz(segmento) {
+      // Defines a function to draw a square
+      function square(side) {
+        // Repeats four times
         for (var i = 0; i < 4; i++) {
-            pf(segmento);
-            pt(segmento);
-            pd(90);
-        }       
-    }
-
-    function seta(tamanho){
-        pd(45);
-        pt(tamanho);
-        pf(tamanho);
-        pe(90);
-        pt(tamanho);
-        pf(tamanho);
-        pd(45);
-    }
-
-    function tar(){
-        var isBaixo = tartaruga.baixo;
-        ul();
-        seta(TAMTAR);
-        if(!isBaixo){
-            un();
+          // Moves the turtle forward with the given side
+          fd(side);
+          
+          // Turns the turtle right 90 degrees
+          RT(90);
         }
-    }
+      }
 
-    function tar(){
-        var isBaixo = tartaruga.baixo;
-        un();
-        pd(45);
-        pt(1);
-        ul();
-        pt(TAMTAR);
-        pf(TAMTAR);
-        pf(1);
-        pe(90);
-        un();
-        pt(1);
-        ul();
-        pt(TAMTAR);
-        pf(TAMTAR);
-        un();
-        pf(1);
-        pd(45);
-        if(isBaixo){
-            ul();
-        }
-    }
-
-    function apagaTar(){
-        var corTar = tartaruga.cor;
-        tartaruga.cor = CORFUNDO;
-        tar();
-        tartaruga.cor = corTar;
-    }
-
-    // Cria um elemento input para receber os comandos
-    var input = document.getElementById("input");
-
-    // Define uma função para executar os comandos
-    function executar(comando) {
-      // Divide o comando em palavras
-      var palavras = comando.split(" ");
-      
-      // Obtém a primeira palavra como o nome da função
-      var funcao = palavras[0];
-      
-      // Obtém as demais palavras como os argumentos da função
-      var argumentos = palavras.slice(1);
-      
-      // Converte os argumentos em números se possível
-      for (var i = 0; i < argumentos.length; i++) {
-        var numero = Number(argumentos[i]);
-        if (!isNaN(numero)) {
-          argumentos[i] = numero;
+      // Defines a function to draw a rectangle
+      function rectangle(side, height) {
+        // Repeats 2 times
+        for (var i = 0; i < 2; i++) {
+          // Moves the turtle forward with the given side
+          fd(side);
+          
+          // Turns the turtle right 90 degrees
+          RT(90);
+          fd(height);
+          RT(90)
         }
       }
       
-      // Verifica se a função existe na biblioteca
-      if (typeof window[funcao] === "function") {
-        // Chama a função com os argumentos dados
-        window[funcao].apply(null, argumentos);
-      } else {
-        // Exibe uma mensagem de erro no console
-        console.error("Função não encontrada: " + funcao);
-      }
-    }
-
-    // Adiciona um evento de tecla pressionada ao input
-    input.addEventListener("keydown", function(event) {
-      // Verifica se a tecla pressionada foi enter
-      if (event.keyCode === 13) {
-        // Obtém o valor do input como o comando
-        var comando = input.value;
+      // Defines a function to draw a circle
+      function circle(radius) {
+        // Calculates the circumference length
+        var length = 2 * Math.PI * radius;
         
-        // Executa o comando
-        executar(comando);
+        // Calculates the number of segments to approximate the circle
+        var segments = Math.ceil(length / 5);
         
-        // Limpa o input
-        input.value = "";
+        // Calculates the size of each segment
+        var segmentSize = length / segments;
+        
+        // Calculates the angle of each segment
+        var angle = 360 / segments;
+        
+        // Repeats the number of segments
+        for (var i = 0; i < segments; i++) {
+          // Moves the turtle forward with the segment size
+          fd(segmentSize);          
+          // Turns the turtle left with the segment angle
+          LT(angle);
+        }
       }
-    });
-  </script>
-</body>
+
+      function restorePen(isdown){
+        if(isdown){
+          pd();
+        }else{
+          PU();
+        }
+      }
+
+      function moveX(x) {
+        var isdown = turtle.down;
+        PU();
+        if(x>0){        
+          fd(x);
+        }else{
+          bk(x);
+        }
+        restorePen(isdown);
+      }
+
+      function moveY(y) {
+        var isdown = turtle.down;
+        PU();
+        RT(90);
+        if(y>0){        
+          fd(y);
+        }else{
+          bk(y);
+        }
+        restorePen(isdown);
+        LT(90);
+      }
+
+      function setxy(x,y){
+        moveX(x);
+        moveY(y);
+      }
+
+      function robot() {
+        moveY(ROBOTSIZE);
+        circle(ROBOTSIZE);
+        var robotHead = ROBOTSIZE/5;
+        bk(robotHead);
+        fd(robotHead);
+        moveY(-ROBOTSIZE);
+      }
+
+      function cross(segment) {
+          for (var i = 0; i < 4; i++) {
+              fd(segment);
+              bk(segment);
+              RT(90);
+          }       
+      }
+
+      function drawArrow(size){
+          RT(45);
+          bk(size);
+          fd(size);
+          LT(90);
+          bk(size);
+          fd(size);
+          RT(45);
+      }
+
+      function arrow(){
+          var isdown = turtle.down;
+          pd();
+          drawArrow(TORTOISE_SIZE);
+          if(!isdown){
+              PU();
+          }
+      }
+
+      function eraseTurtle(){
+          if (turtle.draw){
+            var originalColor = turtle.color;
+            var originalShellColor = turtle.shellColor;
+            turtle.color = BACKGROUND_COLOR;
+            turtle.shellColor = BACKGROUND_COLOR;
+            drawTurtle(true);
+            turtle.color = originalColor;
+            turtle.shellColor = originalShellColor;
+          }
+          
+      }
+
+      function xyDraw(x, y) {
+          fd(x);      
+          LT(90);
+          fd(y);
+          RT(90);
+      }
+
+      // Ex: draw 50 50 5 10 500 1000
+      function draw(side, height, rateX, rateY, delayInMilliseconds, quantity){
+        var modifyY = -rateY;
+        var modifyX = -rateX;
+        var y = height;
+        var x = side;
+        for (var i = 0; i < quantity; i++) {
+          x = x + modifyX;
+          if (x < 0) {
+            modifyX = rateX;
+          }
+          if (x > side) {
+            modifyX = -rateX;
+          }  
+          // Turns the turtle right 90 degrees
+          y = y + modifyY;
+          if (y < 0) {
+            modifyY = rateY;
+          }
+          if (y > height) {
+            modifyY = -rateY;
+          }
+          //setTimeout(function() {
+            //your code to be executed after 1 second
+            xyDraw(x, y);
+          //}, delayInMilliseconds);
+        }
+      }
+
+      function drawTurtle(erase = false) {
+        if (turtle.draw){
+          if(erase){
+            initialSize = TURTLE_SIZE;
+            TURTLE_SIZE = initialSize + 7;
+          }
+
+          // Body of the turtle
+          turtleCtx.beginPath();
+          turtleCtx.arc(turtle.x, turtle.y, TURTLE_SIZE, 0, Math.PI * 2); // Circle for the body
+          turtleCtx.fillStyle = turtle.shellColor; // Shell color
+          turtleCtx.fill();
+
+          // Head of the turtle
+          turtleCtx.beginPath();
+          turtleCtx.arc(turtle.x, turtle.y - TURTLE_SIZE, TURTLE_SIZE / 2, 0, Math.PI * 2); // Circle for the head
+          turtleCtx.fillStyle = turtle.color; // Head color
+          turtleCtx.fill();
+
+          // Legs of the turtle
+          let legLength = TURTLE_SIZE * 0.75;
+          let legWidth = TURTLE_SIZE / 4;
+          [[turtle.x - TURTLE_SIZE, turtle.y - TURTLE_SIZE / 2], [turtle.x + TURTLE_SIZE, turtle.y - TURTLE_SIZE / 2], [turtle.x - TURTLE_SIZE, turtle.y + TURTLE_SIZE / 2], [turtle.x + TURTLE_SIZE, turtle.y + TURTLE_SIZE / 2]].forEach(function (legPos) {
+            turtleCtx.beginPath();
+            turtleCtx.ellipse(legPos[0], legPos[1], legWidth, legLength, 0, 0, Math.PI * 2); // Ellipse for the legs
+            turtleCtx.fillStyle = turtle.shellColor; // Leg color
+            turtleCtx.fill();
+          });
+
+          if(erase){
+            TURTLE_SIZE = initialSize;
+          }
+        }
+      }
+
+      // Creates an input element to receive commands
+      var input = document.getElementById("input");
+
+      // Defines a function to execute commands
+      function execute(command) {
+        // Splits the command into words
+        var words = command.split(" ");
+        
+        // Gets the first word as the function name
+        var functionName = words[0];
+        
+        // Gets the remaining words as the functionName arguments
+        var arguments = words.slice(1);
+        
+        // Converts the arguments to numbers if possible
+        for (var i = 0; i < arguments.length; i++) {
+          var number = Number(arguments[i]);
+          if (!isNaN(number)) {
+            arguments[i] = number;
+          }
+        }
+        
+        // Checks if the functionName exists in the library
+        if (typeof window[functionName] === "function") {
+          // Calls the function with the given arguments
+          window[functionName].apply(null, arguments);
+        } else {
+          // Displays an error message in the console
+          console.error("Function not found: " + functionName);
+        }
+      }
+
+      // Adds a keydown event to the input
+      input.addEventListener("keydown", function(event) {
+        // Checks if the pressed key was enter
+        if (event.key === 'Enter') {
+          // Gets the input value as the command
+          var command = input.value;
+          
+          // Executes the command
+          execute(command);
+          
+          // Clears the input
+          input.value = "";
+        }
+      });
+
+      // Unit tests
+      function testMoveY(){
+        var initialY = turtle.y;
+        console.log("testMoveY initial y: "+initialY);
+        moveY(10);
+        if(turtle.y != initialY + 10){
+          console.log("testMoveY final y: "+turtle.y);
+        }else{
+          console.log("success");
+        }
+      }
+      function test(){
+        testMoveY();
+      }
+    </script>
+  </body>
 </html>
